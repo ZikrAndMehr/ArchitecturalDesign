@@ -6,22 +6,22 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.zam.architecturaldesign.MainActivity
 import com.zam.architecturaldesign.R
 import com.zam.architecturaldesign.data.Quote
 import com.zam.architecturaldesign.databinding.FragmentQuotesBinding
-import kotlinx.coroutines.launch
+import com.zam.architecturaldesign.presenters.quotes_presenter.QuotesContract
+import com.zam.architecturaldesign.presenters.quotes_presenter.QuotesPresenter
 
-class QuotesFragment : Fragment() {
+class QuotesFragment : Fragment(), QuotesContract.ViewInterface {
 
     private var _binding: FragmentQuotesBinding? = null
     private val binding get() = _binding!!
-    private val quoteDataSource by lazy { (requireActivity() as MainActivity).quoteDataSource }
-    private val quotesAdapter = QuotesAdapter { deleteQuote(it) }
+    private val quotesPresenter by lazy {
+        QuotesPresenter(this, (requireActivity() as MainActivity).quoteDataSource)
+    }
+    private val quotesAdapter by lazy { QuotesAdapter { quotesPresenter.deleteQuote(it) } }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -35,7 +35,21 @@ class QuotesFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupViews()
-        collectFlows()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        quotesPresenter.startCollectingFlows()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        quotesPresenter.stopCollectingFlows()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        quotesPresenter.cleanUp()
     }
 
     private fun setupViews() {
@@ -47,30 +61,16 @@ class QuotesFragment : Fragment() {
         }
     }
 
-    private fun collectFlows() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                quoteDataSource.allQuotes.collect {
-                    if (it.isEmpty()) {
-                        Toast.makeText(
-                            requireContext(), R.string.no_quotes, Toast.LENGTH_SHORT
-                        ).show()
-                    } else {
-                        quotesAdapter.submitList(it)
-                    }
-                }
-            }
-        }
-    }
-
-    private fun deleteQuote(quote: Quote) {
-        viewLifecycleOwner.lifecycleScope.launch {
-            quoteDataSource.delete(quote)
-        }
-    }
-
     private fun navigateToQuoteFragment() {
         val directions = QuotesFragmentDirections.actionQuotesFragmentToNewQuoteFragment()
         findNavController().navigate(directions)
+    }
+
+    override fun updateQuotesAdapter(quotes: List<Quote>) {
+        if (quotes.isEmpty()) {
+            Toast.makeText(requireContext(), R.string.no_quotes, Toast.LENGTH_SHORT).show()
+        } else {
+            quotesAdapter.submitList(quotes)
+        }
     }
 }
