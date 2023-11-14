@@ -6,22 +6,25 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.zam.architecturaldesign.MainActivity
 import com.zam.architecturaldesign.R
-import com.zam.architecturaldesign.data.Quote
 import com.zam.architecturaldesign.databinding.FragmentQuotesBinding
+import com.zam.architecturaldesign.viewmodel.SharedViewModel
 import kotlinx.coroutines.launch
 
 class QuotesFragment : Fragment() {
 
     private var _binding: FragmentQuotesBinding? = null
     private val binding get() = _binding!!
-    private val quoteDataSource by lazy { (requireActivity() as MainActivity).quoteDataSource }
-    private val quotesAdapter = QuotesAdapter { deleteQuote(it) }
+    private val sharedViewModel: SharedViewModel by activityViewModels {
+        SharedViewModel.getFactory((requireActivity() as MainActivity).quoteDataSource)
+    }
+    private val quotesAdapter by lazy { QuotesAdapter { sharedViewModel.deleteQuote(it) } }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -50,7 +53,7 @@ class QuotesFragment : Fragment() {
     private fun collectFlows() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                quoteDataSource.allQuotes.collect {
+                sharedViewModel.allQuotes.collect {
                     if (it.isEmpty()) {
                         Toast.makeText(
                             requireContext(), R.string.no_quotes, Toast.LENGTH_SHORT
@@ -60,12 +63,6 @@ class QuotesFragment : Fragment() {
                     }
                 }
             }
-        }
-    }
-
-    private fun deleteQuote(quote: Quote) {
-        viewLifecycleOwner.lifecycleScope.launch {
-            quoteDataSource.delete(quote)
         }
     }
 

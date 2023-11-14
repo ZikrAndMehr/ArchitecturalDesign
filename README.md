@@ -1,36 +1,36 @@
-# Model-View-Controller Pattern
+# Model-View-ViewModel Pattern
 
-The Model-View-Controller (MVC) pattern is a software architectural pattern that separates components based on their responsibilities. In MVC, three distinct components are defined:
+MVVM, which stands for Model-View-ViewModel, is an architectural pattern designed to achieve a clear separation of concerns by defining distinct roles for each layer:
 
-- **Model**: This represents the data layer. It includes data objects, database classes, and other business logic responsible for tasks like storing, retrieving, and updating data.
+- **Model**: Retrieves information from the data source and exposes it to the ViewModels.
 
-- **View**: The view is responsible for rendering data from the Model in a user-friendly format. It's what the user interacts with and sees on the screen.
+- **View**: Displays the UI and communicates user actions to the other layers.
 
-- **Controller**: The Controller acts as the central hub, managing the logic of the system. It controls both the Model and the View. Users interact with the system through the Controller.
+- **ViewModel**: Exposes information to the View.
 
-The key principle is that the Model should not be concerned with how the data is ultimately displayed to the user. Similarly, the View shouldn't be aware of the actual data values it displays, only that it needs to display them. The Controller bridges these components, orchestrating how the data should be presented.
+At first glance, MVVM resembles the MVP and MVC architectural patterns. The key distinction lies in MVVM's strong emphasis on the ViewModel not containing any references to Views. The ViewModel only provides information and is not concerned with what consumes it. This promotes a one-to-many relationship, allowing Views to request information from any ViewModel they need.
 
 ## Usage
 
 This project consists of two main screens:
 
-1. **QuotesFragment**: This screen displays all saved quotes from the local database. Users can view and delete any quote.
+1. **QuotesFragment**: Displays all saved quotes from the local database. Users can view and delete any quote.
 
-2. **NewQuoteFragment**: Users can add a new quote to the database through this screen.
+2. **NewQuoteFragment**: Allows users to add a new quote to the database.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="images/mvc-dark.svg">
-  <source media="(prefers-color-scheme: light)" srcset="images/mvc-light.svg">
-  <img alt="mvc" src="images/mvc-light.svg" width="50%">
+<picture>  
+  <source media="(prefers-color-scheme: dark)" srcset="images/mvvm-dark.svg">  
+  <source media="(prefers-color-scheme: light)" srcset="images/mvvm-light.svg">  
+  <img alt="mvc" src="images/mvvm-light.svg" width="50%">  
 </picture>
 
-> [!WARNING]
-> When applying MVC to Android, the Android Activities/Fragments end up serving as both the View and Controller, which is problematic for separation of concerns and unit testing.
+> [!IMPORTANT]
+> MVVM addresses issues found in other architecture patterns like MVC/MVP, such as fat controllers or a close relationship with the View layer. By introducing ViewModels, designed to be completely separated from the Views, MVVM reduces the risk of having too much code in other layers.
 
 ## Technologies Used
 
-- **View Binding**: View binding simplifies interaction with views. Enabling view binding in a module generates a binding class for each XML layout file. This binding class holds direct references to views with corresponding IDs in the layout.
+- **View Binding**: Simplifies interaction with views by generating a binding class for each XML layout file. This class holds direct references to views with corresponding IDs.
 
 - **Navigation**: Android Jetpack's Navigation component facilitates navigation, from simple button clicks to complex patterns like app bars and navigation drawers.
 
-- **Room**: Room is a persistence library that provides a layer over SQLite, enabling robust database access while leveraging the full capabilities of SQLite.
+- **Room**: A persistence library providing a layer over SQLite, enabling robust database access while leveraging the full capabilities of SQLite.
